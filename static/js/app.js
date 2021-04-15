@@ -49,3 +49,121 @@ function resetData() {
   barChart.html("");
   bubbleChart.html("");
 }
+// create a function to read JSON and plot charts
+function plotCharts(id) {
+  // read in the JSON data
+  d3.json("data/samples.json").then((data) => {
+    //=============================================//
+    // POPULATE DEMOGRAPHICS TABLE
+    //=============================================//
+
+    // filter the metadata for the ID chosen
+    var individualMetadata = data.metadata.filter(
+      (participant) => participant.id == id
+    )[0];
+
+    // Iterate through each key and value in the metadata
+    Object.entries(individualMetadata).forEach(([key, value]) => {
+      var newList = demographicsTable.append("ul");
+      newList.attr("class", "list-group list-group-flush");
+
+      // append a li item to the unordered list tag
+      var listItem = newList.append("li");
+
+      // change the class attributes of the list item for styling
+      listItem.attr("class", "list-group-item p-1 demo-text bg-transparent");
+
+      // add the key value pair from the metadata to the demographics list
+      listItem.text(`${key}: ${value}`);
+    });
+
+    //=============================================//
+    // GET DATA FOR PLOTTING CHARTS
+    //=============================================//
+
+    // filter the samples for the ID chosen
+    var individualSample = data.samples.filter((sample) => sample.id == id)[0];
+
+    // create empty arrays to store sample data
+    var otuIds = [];
+    var otuLabels = [];
+    var sampleValues = [];
+
+    // Iterate through each key and value in the sample to retrieve data for plotting
+    Object.entries(individualSample).forEach(([key, value]) => {
+      switch (key) {
+        case "otu_ids":
+          otuIds.push(value);
+          break;
+        case "sample_values":
+          sampleValues.push(value);
+          break;
+        case "otu_labels":
+          otuLabels.push(value);
+          break;
+        // case
+        default:
+          break;
+      }
+    });
+
+    // slice and reverse the arrays to get the top 10 values, labels and IDs
+    var topOtuIds = otuIds[0].slice(0, 10).reverse();
+    var topOtuLabels = otuLabels[0].slice(0, 10).reverse();
+    var topSampleValues = sampleValues[0].slice(0, 10).reverse();
+
+    // use the map function to store the IDs with "OTU" for labelling y-axis
+    var topOtuIdsFormatted = topOtuIds.map((otuID) => "OTU " + otuID);
+
+    //=============================================//
+    // PLOT BAR CHART
+    //=============================================//
+
+    // create a trace
+    var traceBar = {
+      x: topSampleValues,
+      y: topOtuIdsFormatted,
+      text: topOtuLabels,
+      type: "bar",
+      orientation: "h",
+      marker: {
+        color: "rgb(31,69,110)",
+      },
+    };
+
+    // create the data array for plotting
+    var dataBar = [traceBar];
+
+    // define the plot layout
+    var layoutBar = {
+      height: 500,
+      width: 1000,
+      title: {
+        text: `<b>Top OTUs for Test Subject ${id}</b>`,
+        font: {
+          size: 24,
+          color: "rgb(34,94,168)",
+        },
+      },
+      xaxis: {
+        title: "<b>Sample values<b>",
+        color: "rgb(34,94,168)",
+      },
+    };
+
+    // plot the bar chart to the "bar" div
+    Plotly.newPlot("bar", dataBar, layoutBar);
+  });
+}
+
+// when there is a change in the dropdown select menu, this function is called with the ID as a parameter
+function optionChanged(id) {
+  // reset the data
+  resetData();
+
+  // plot the charts for this id
+  plotCharts(id);
+} // close optionChanged function
+
+// call the init() function for default data
+init();
