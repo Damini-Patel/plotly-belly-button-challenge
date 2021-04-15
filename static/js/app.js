@@ -1,52 +1,51 @@
-//Create initial function to     
-    d3.json("/data/samples.json").then((data) => {
-        //  populate dropdown menus with data
-        //  use a forEach to loop over each name in the array data.names to populate dropdowns with IDs
-        data.names.forEach((name => {
-            var subjectId = idSelect.append("subjectId");
-            subjectId.text(name);
-        }));
+//=============================================//
+// VARIABLES NEEDED IN THE FUNCTIONS
+//=============================================//
 
-        // get the first ID from the list for initial charts as a default
-        var initId = idSelect.property("value")
+// select the user input field
+var userChoice = d3.select("#selDataset");
 
-        // plot charts with initial ID
-        plotCharts(initId);
+// select the demographic info div's ul list group
+var demographicsTable = d3.select("#sample-metadata");
+
+// select the bar chart div
+var barChart = d3.select("#bar");
+
+// select the bubble chart div
+var bubbleChart = d3.select("bubble");
+
+//=============================================//
+//  CREATE FUNCTIONS
+//=============================================//
+
+// create a function to populate dropdown menu with IDs and draw corresponding charts for first ID
+function init() {
+  // reset any previous data
+  resetData();
+
+  // read in JSON file
+  d3.json("data/samples.json").then((data) => {
+    // POPULATE DROPDOWN MENU WITH IDs
+
+    // loop over each name in the array data.names to populate dropdowns with IDs
+    data.names.forEach((name) => {
+      var option = userChoice.append("option");
+      option.text(name);
     });
 
-function plotCharts (id){
+    // get the first ID from the list for initial charts as a default
+    var initId = userChoice.property("value");
 
-    // read in JSON data
-    d3.json("/data/samples.json").then((data) => {
+    // plot initial charts with initial ID
+    plotCharts(initId);
+  });
+}
 
-        // get data for demographics table -> filter based on id 
-        var identityMetaData = data.metadata.filter(participant => participant.id == id)[0]; 
+// create a function to reset divs to prepare for new data
+function resetData() {
+  // CLEAR THE DATA
 
-        // get each key and value pair of metadata
-        Object.entries(identityMetaData).forEach(([key, value]) => {
-
-            //add each key value pair to a list
-            var newList = demographicsTable.append("ul");
-            newList.attr("class", "list-group");
-
-            // append a li item to the unordered list
-            var listItem = newList.append("li");
-
-            // change the class attributes of the list item
-            listItem.attr("class", "list-group-item");
-
-            // add the key value pair from the metadata to the demographics list
-            listItem.text(`${key}: ${value}`);
-
-        });
-
-        //Get data for plotting
-
-         
-        
-    )};
-    };
-
-
-
-        
+  demographicsTable.html("");
+  barChart.html("");
+  bubbleChart.html("");
+}
